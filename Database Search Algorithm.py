@@ -1,20 +1,6 @@
 # Importing key modules for things to work moving forward
 import subprocess
 
-### Defining key functions for the program moving forward.
-# Simple clearing function to main tidiness throughout the code
-def Clear():
-    subprocess.run("cls", shell=True)
-
-# Value to return a boolean through a try...except block to see if it was valid or not
-def checkParseValidity(value):
-    try:
-        int(value)
-        return True
-    except ValueError:
-        return False
-
-
 # Declaring important variables and arrays for the algorithm (i.e. initialising the database)
 hostTeam = [
             [ "Abdul Ahad", "M", "Purple", "IT", "Member" ],
@@ -184,7 +170,7 @@ hostTeam = [
 positions = [ "Director", 'Co-director', 'Member' ]
 executiveCouncil = [ "Director General", "Secretary General", "Under Secretary General", "Head of Host Team" ]
 departments = [ "EC", "Registration", "Logistics", "Outreach", "Media", "Publications", "Liaison", "Finance", "IT", "Security", "Committee Affairs", "Socials" ]
-sections = [ "Red", "Green", "Blue", "Yellow", "Purple", "Mauve", "Silver" ]
+sections = [ "Red", "Green", "Blue", "Yellow", "Purple", "Mauve", "Silver", "Orange" ]
 
 # Important menu variables 
 menuChoice = ""
@@ -194,6 +180,7 @@ firstName = ""
 post = ""
 dept = ""
 section = ""
+fields = []
 
 # Loop booleans
 mainLoop = True
@@ -201,7 +188,80 @@ menuLoop = True
 errorDisplay = False
 mainMenuErrorDisplay = False
 
+# Search result arrays and variables
+searchResults = []
+similarityScores = []
+
+### Defining key functions for the program moving forward.
+# Simple clearing function to main tidiness throughout the code
+def Clear():
+    subprocess.run("cls", shell=True)
+# Value to return a boolean through a try...except block to see if it was valid or not
+def checkParseValidity(value):
+    try:
+        int(value)
+        return True
+    except ValueError:
+        return False
+# Main function to get the search results based on the first name before moving onto the other fields
+def getFirstNameResults(searchName, database, index):
+    # Breaking the first name into a character array comprised only of unique characters in uppercase
+    searchNameBroken = list(dict.fromkeys(searchName.upper()))
+    # Declaring a local variables
+    length = 0
+    localResults = []
+    similarity = 0
+
+    # Longer for loops with multiple nested for loops. Lots, and lots of for loops
+    for i in range(len(database)):
+        # Breaking the first name of the current person in the database into a character array
+        # before splitting it at the space to get rid of extra names, keeping only the first.
+        currentNameBroken = database[i][index].split(" ")[0]
+        currentNameBroken = list(dict.fromkeys(currentNameBroken.upper()))
+        length = len(currentNameBroken)
+        # Resetting similarity points for each loop
+        similarity = 0
+        isValidResult = False
+
+        # Looping through the characters in the search name and checking if they are in the current name, if they are, the length variable is increased by 1
+        for char in searchNameBroken:
+            if char in currentNameBroken:
+                similarity += 1
+        
+        # Turning similarity into a percentage from the length value
+        similarity = (similarity / length) * 100
+
+        # If the similarity variable is equal to or above the set threshold of each selection, 
+        # it means that the result has crossed enough of a threshold to be considered a valid result, 
+        # and the index of that result is added to the localResults array.
+        if (length >= 4):
+            if (similarity >= 60):
+                validResult = True
+        elif (length == 3):
+            if (similarity >= 66.66):
+                validResult = True
+        elif (length >= 2):
+            if (similarity == 100):
+                validResult = True
+        
+        # Appending the results if the result is valid enough
+        if isValidResult:
+            localResults.append(i)
+            similarityScores.append(similarity)
+    return localResults
+
+def setGeneralSimilarityScores(field, results, database, databaseIndex):
+    # Looping through the search results and checking if the value in the field corrosponding to the database index is equal to the search value, if it is, 100 similarity points are added, if it isn't, 0 similarity points are added.
+    for i in range(len(results)):
+        if database[results[i]][databaseIndex] == field:
+            similarityScores[i] += 25
+
+
+# Here comes the actual program itself
 while mainLoop:
+    # Setting the fields array to the current values of the fields
+    fields = [ firstName, post, dept, gender, section ]
+
     Clear()
 
     print("BMIDC Rebirth Edition")
@@ -210,6 +270,18 @@ while mainLoop:
     # Displaying the fields that the user can pick from
     print("\nHere are a list of fields and their associated number: ")
     print("1. First Name\n2. Position\n3. Department\n4. Gender\n5. Section\n6. Clear fields\n\n7. Begin Search\n")
+    
+    # Displaying the fields that have already been set
+    counter = 0
+    print("Current fields set (Corrosponding to their integer above): ")
+    for i in range(len(fields)):
+        if fields[i] != "":
+            print(f"{i + 1}. {fields[i]}")
+            counter += 1
+    if counter == 0:
+        print("No fields have been set yet.")
+    
+    print("") # Just a line break for better formatting
 
     # If the previous value entered into menuChoice for the main menu wasn't valid, this error message will be displayed
     if mainMenuErrorDisplay:
@@ -221,13 +293,16 @@ while mainLoop:
     errorDisplay = False
 
     # Taking input from the user regarding which field they want to pick from above and storing it in menuChoice
-    menuChoice = input("Enter the number associated with the field you would like to set: ")
+    menuChoice = input("\nEnter the number associated with the field you would like to set: ")
 
     if menuChoice == "1":
         # Everything runs in a loop to ensure that the user enters a valid value, 
         # and if they don't, they will be prompted to enter a valid value until they do.
         while menuLoop:
             Clear()
+
+            # Disabling the loop so that it can be enabled if the word isn't valid
+            menuLoop = False
 
             # Asking for input from the user
             print("Enter ONLY the first name of the person you would like to search for. Do not enter any gaps or symbols.")
@@ -236,7 +311,7 @@ while mainLoop:
             if errorDisplay:
                 print("\nThe value you entered was invalid. Please follow the instructions stated above.\n")
             
-            firstName = input("First Name: ")
+            firstName = input("\nFirst Name: ")
 
             # Breaking the name into a character list/array to run it through a for loop.
             # This for loop will check if any of the characters in the name are not letters, 
@@ -245,7 +320,7 @@ while mainLoop:
             for char in firstNameChars:
                 if not char.isalpha():
                     errorDisplay = True
-                    menuLoop = False
+                    menuLoop = True
                     break
 
     elif menuChoice == "2":
@@ -270,7 +345,7 @@ while mainLoop:
                 print("\nThe value you entered was invalid. Please follow the instructions stated above.\n")
             
             # Taking input from the user expecting an integer value
-            menuChoice = input("Position: ")
+            menuChoice = input("\nPosition: ")
 
             # Checking if the value entered is a valid integer and within the bounds of the options given. If it isn't, an error message will be displayed.
             if checkParseValidity(menuChoice):
@@ -306,7 +381,7 @@ while mainLoop:
                 print("\nThe value you entered was invalid. Please enter a valid integer value that corresponds to a department.\n")
             
             # Taking input from the user expecting an integer value
-            menuChoice = input("Department: ")
+            menuChoice = input("\nDepartment: ")
 
             # Proceeding based on whether the value entered is even valid or not
             if checkParseValidity(menuChoice):
@@ -338,7 +413,7 @@ while mainLoop:
             print("\nNote: Setting the gender to female will automatically set clear the section field as there are no sections for the girls branch in the database.\n")
 
             # Taking input from the user expecting an integer value
-            menuChoice = input("Enter the integer corresponding to the gender you would like to set: ")
+            menuChoice = input("\nEnter the integer corresponding to the gender you would like to set: ")
 
             # Using basic selection statements to set the gender
             if menuChoice == "1":
@@ -366,7 +441,7 @@ while mainLoop:
                 print("\nNote: Setting the section will automatically wipe the gender field as there are only sections for the boys branch in the database.\n")
 
             # Taking input from the user expecting an integer value
-            menuChoice = input("Section: ")
+            menuChoice = input("\nSection: ")
 
             # Proceeding based on whether the value entered is even valid or not
             if checkParseValidity(menuChoice):
@@ -384,9 +459,11 @@ while mainLoop:
                 errorDisplay = True
 
     elif menuChoice == "6":
+        Clear()
+
         # Confirming from the user if they want to clear the fields or not to prevent accidental clearing of fields
         print("Are you sure you want to clear all fields? This action cannot be undone. Enter Y for yes and N for no.")
-        menuChoice = input("Clear fields? (Y/N): ")
+        menuChoice = input("\nClear fields? (Y/N): ")
 
         # Removing need for casing for the user
         menuChoice = menuChoice.upper()
@@ -398,3 +475,109 @@ while mainLoop:
             dept = ""
             gender = "" 
             section = ""
+
+    elif menuChoice == "7":
+        Clear()
+        print("Generating search results...")
+
+        # Setting booleans regarding the null values of the fields
+        isNameNull = (firstName == "")
+        isGenderNull = (gender == "")
+        isSectionNull = (section == "")
+        isDeptNull = (dept == "")
+        isPostNull = (post == "")
+
+        # Making a list to use for threshold calculation and other selection statements
+        searchResults = [gender, section, dept, post]
+        # Initialising threshold values
+        highestThresholdValue = len(searchResults) * 25
+        threshold = 0
+
+        # Getting the search results based on the first name field as that is the most complex one 
+        # to search through, and then moving onto the other fields.
+        if not isNameNull:
+            searchResults = getFirstNameResults(firstName, hostTeam, 0)
+        if not isGenderNull:
+            setGeneralSimilarityScores(gender, searchResults, hostTeam, 1)
+        if not isSectionNull:
+            setGeneralSimilarityScores(section, searchResults, hostTeam, 2)
+        if not isDeptNull:
+            setGeneralSimilarityScores(dept, searchResults, hostTeam, 3)
+        if not isPostNull:
+            setGeneralSimilarityScores(post, searchResults, hostTeam, 4)
+
+        # Bubble sort time
+        while True:
+            swapped = False
+            for i in range(len(similarityScores) - 1):
+                if similarityScores[i] < similarityScores[i + 1]:
+                    # Swap the scores
+                    similarityScores[i], similarityScores[i + 1] = similarityScores[i + 1], similarityScores[i]
+                    # Swap the corresponding search results to maintain the correct order
+                    searchResults[i], searchResults[i + 1] = searchResults[i + 1], searchResults[i]
+
+                    swapped = True
+            if not swapped:
+                break
+
+        # Counting the number of fields not null
+        fieldsSelected = 0
+        for i in range(len(fields)):
+            if fields[i] != "":
+                fieldsSelected += 1
+
+        # Setting the threshold value dynamically through selection statements
+        if fieldsSelected == 1:
+            if isNameNull:
+                threshold = 90 
+            else:
+                threshold = (2/3) * 100 
+        elif fieldsSelected == 0:
+            if not isNameNull:
+                threshold = 50 
+            else:
+                threshold = 0  
+        elif fieldsSelected > 1 and isNameNull:
+            if fieldsSelected >= 3:
+                threshold = 75 
+            elif fieldsSelected == 2:
+                threshold = 90 
+        
+        # Another loop to remove those similarity scores that don't meet the threshold, only
+        # this time it's a backward loop
+        for i in range(len(similarityScores) - 1, -1, -1):
+            if similarityScores[i] < threshold:
+                # Removing the score and search result
+                searchResults.pop(i)
+                similarityScores.pop(i)
+
+        # Displaying the search results in a user friendly way inside of a loop to allow 
+        # the opening of a sepecific person's details
+        
+        while True:
+            Clear()
+
+            print("Search Results: \n")
+
+            # Using a for loop to display all the search results
+            for result in searchResults:
+                print(f"{result + 1}. {hostTeam[result][0]}, {hostTeam[result][4]} of {hostTeam[result][3]}.")
+            
+            # Asking the user if they want to open details about a specific person
+            menuChoice = input("\nEnter the number associated with the person you would like to see more details about, or enter 0 to return to the main menu: ")
+
+            if (checkParseValidity(menuChoice)):
+                choiceInteger = int(menuChoice)
+                choiceInteger -= 1
+
+                if choiceInteger >= 0 and choiceInteger < len(searchResults):
+                    Clear()
+                    print(f"Name: {hostTeam[choiceInteger][0]}" +
+                    "\nPosition: {hostTeam[choiceInteger][4]}" +
+                    "\nDepartment: {hostTeam[choiceInteger][3]}" +
+                    "\nGender: {hostTeam[choiceInteger][1]}" +
+                    "\nSection: {hostTeam[choiceInteger][2]}")
+
+                    input("\nPress [ENTER] to return to the search results: ")
+                elif choiceInteger <= -1:
+                    break
