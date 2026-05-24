@@ -7,7 +7,12 @@ def Clear():
     subprocess.run("cls", shell=True)
 
 # Value to return a boolean through a try...except block to see if it was valid or not
-
+def checkParseValidity(value):
+    try:
+        int(value)
+        return True
+    except ValueError:
+        return False
 
 
 # Declaring important variables and arrays for the algorithm (i.e. initialising the database)
@@ -176,6 +181,10 @@ hostTeam = [
             [ "Zoraiz Jashal", "M", "Green", "IT", "Member" ],
             [ "Zunaira Hasan", "G", "", "Logistics", "Member" ],
             [ "Zyna Malik", "G", "", "IT", "Member" ] ]
+positions = [ "Director", 'Co-director', 'Member' ]
+executiveCouncil = [ "Director General", "Secretary General", "Under Secretary General", "Head of Host Team" ]
+departments = [ "EC", "Registration", "Logistics", "Outreach", "Media", "Publications", "Liaison", "Finance", "IT", "Security", "Committee Affairs", "Socials" ]
+sections = [ "Red", "Green", "Blue", "Yellow", "Purple", "Mauve", "Silver" ]
 
 # Important menu variables 
 menuChoice = ""
@@ -188,7 +197,8 @@ section = ""
 
 # Loop booleans
 mainLoop = True
-errorDiplay = False
+menuLoop = True
+errorDisplay = False
 mainMenuErrorDisplay = False
 
 while mainLoop:
@@ -207,7 +217,184 @@ while mainLoop:
     
     # Clearing appropriate variables to use further in the search
     mainMenuErrorDisplay = False
+    menuLoop = True
+    errorDisplay = False
 
     # Taking input from the user regarding which field they want to pick from above and storing it in menuChoice
     menuChoice = input("Enter the number associated with the field you would like to set: ")
 
+    if menuChoice == "1":
+        # Everything runs in a loop to ensure that the user enters a valid value, 
+        # and if they don't, they will be prompted to enter a valid value until they do.
+        while menuLoop:
+            Clear()
+
+            # Asking for input from the user
+            print("Enter ONLY the first name of the person you would like to search for. Do not enter any gaps or symbols.")
+            
+            # If the value was invalid in the previous loop, this error message will be displayed
+            if errorDisplay:
+                print("\nThe value you entered was invalid. Please follow the instructions stated above.\n")
+            
+            firstName = input("First Name: ")
+
+            # Breaking the name into a character list/array to run it through a for loop.
+            # This for loop will check if any of the characters in the name are not letters, 
+            # and if they aren't, it will set firstName to an empty string and display an error message.
+            firstNameChars = list(firstName)
+            for char in firstNameChars:
+                if not char.isalpha():
+                    errorDisplay = True
+                    menuLoop = False
+                    break
+
+    elif menuChoice == "2":
+        ### This menu is quite different for a reason: There's two possbile lists of options to choose from
+        # By default, its the list from the variable positions, but in the case of the department being set to the 
+        # executive council, it must present the EC posts instead
+        while menuLoop:
+            Clear()
+
+            # If the department is set to EC, the options will be from the executiveCouncil variable, otherwise, they will be from the positions variable
+            if dept == "EC":
+                print("Enter the number associated with the position you would like to set: ")
+                for i in range(len(executiveCouncil)):
+                    print(f"{i + 1}. {executiveCouncil[i]}")
+            else:
+                print("Enter the number associated with the position you would like to set: ")
+                for i in range(len(positions)):
+                    print(f"{i + 1}. {positions[i]}")
+
+            # If the value was invalid in the previous loop, this error message will be displayed
+            if errorDisplay:
+                print("\nThe value you entered was invalid. Please follow the instructions stated above.\n")
+            
+            # Taking input from the user expecting an integer value
+            menuChoice = input("Position: ")
+
+            # Checking if the value entered is a valid integer and within the bounds of the options given. If it isn't, an error message will be displayed.
+            if checkParseValidity(menuChoice):
+                choiceInteger = int(menuChoice)
+                choiceInteger -= 1
+
+                # Using selection to decided which list of options the choice integer is referring to
+                if dept == "EC":
+                    if choiceInteger >= 0 and choiceInteger < len(executiveCouncil):
+                        post = executiveCouncil[choiceInteger]
+                        menuLoop = False
+                    else:
+                        errorDisplay = True
+                else:
+                    if choiceInteger >= 0 and choiceInteger < len(positions):
+                        post = positions[choiceInteger]
+                        menuLoop = False
+                    else:
+                        errorDisplay = True
+            else:
+                errorDisplay = True
+    
+    elif menuChoice == "3":
+        while menuLoop:
+            Clear()
+
+            print("Enter the number associated with the department you would like to set: ")
+            for i in range(len(departments)):
+                print(f"{i + 1}. {departments[i]}")
+
+            # Message only to be displayed if the previous value was incorrect
+            if errorDisplay:
+                print("\nThe value you entered was invalid. Please enter a valid integer value that corresponds to a department.\n")
+            
+            # Taking input from the user expecting an integer value
+            menuChoice = input("Department: ")
+
+            # Proceeding based on whether the value entered is even valid or not
+            if checkParseValidity(menuChoice):
+                choiceInteger = int(menuChoice)
+                choiceInteger -= 1
+
+                # Using selection statements to check if the value entered was valid and within bounds
+                if choiceInteger >= 0 and choiceInteger < len(departments):
+                    dept = departments[choiceInteger]
+                    menuLoop = False
+                else:
+                    errorDisplay = True
+            else:
+                errorDisplay = True
+    
+    elif menuChoice == "4":
+        while menuLoop:
+            Clear()
+
+            # Displaying the options for the user to choose from
+            print("Here are the genders and their associated numbers: ")
+            print("1. Male (BMI-B)\n2. Female(BMI-G)")
+
+            # Message only to be displayed if the previous value was incorrect
+            if errorDisplay:
+                print("\nThe value you entered was invalid. Please enter a valid integer value that corresponds to a gender.\n")
+
+            # Message to warn users about setting the gender to female as that will wipe the section
+            print("\nNote: Setting the gender to female will automatically set clear the section field as there are no sections for the girls branch in the database.\n")
+
+            # Taking input from the user expecting an integer value
+            menuChoice = input("Enter the integer corresponding to the gender you would like to set: ")
+
+            # Using basic selection statements to set the gender
+            if menuChoice == "1":
+                gender = "M"
+                menuLoop = False
+            elif menuChoice == "2":
+                gender = "G"
+                menuLoop = False
+            else:
+                errorDisplay = True
+
+    elif menuChoice == "5":
+        while menuLoop:
+            Clear()
+
+            print("Here are a list of sections and their corresponding number values: ")
+            for i in range(len(sections)):
+                print(f"{i + 1}. {sections[i]}")
+
+            # Message only to be displayed if the previous value was incorrect
+            if errorDisplay:
+                print("\nThe value you entered was invalid. Please enter a valid integer value that corresponds to a section.\n")
+            # Message to warn users about setting the section as that will automatically set the gender to null
+            if section != "":
+                print("\nNote: Setting the section will automatically wipe the gender field as there are only sections for the boys branch in the database.\n")
+
+            # Taking input from the user expecting an integer value
+            menuChoice = input("Section: ")
+
+            # Proceeding based on whether the value entered is even valid or not
+            if checkParseValidity(menuChoice):
+                choiceInteger = int(menuChoice)
+                choiceInteger -= 1
+
+                # Using selection statements to check if the value entered was valid and within bounds
+                if choiceInteger >= 0 and choiceInteger < len(sections):
+                    section = sections[choiceInteger]
+                    menuLoop = False
+                    gender = ""
+                else:
+                    errorDisplay = True
+            else:
+                errorDisplay = True
+
+    elif menuChoice == "6":
+        # Confirming from the user if they want to clear the fields or not to prevent accidental clearing of fields
+        print("Are you sure you want to clear all fields? This action cannot be undone. Enter Y for yes and N for no.")
+        menuChoice = input("Clear fields? (Y/N): ")
+
+        # Removing need for casing for the user
+        menuChoice = menuChoice.upper()
+
+        # Clearing the field if confirmation is given
+        if menuChoice == "Y":
+            firstName = ""
+            post = ""
+            dept = ""
+            gender = "" 
+            section = ""
